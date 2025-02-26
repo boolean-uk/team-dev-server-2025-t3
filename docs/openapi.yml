@@ -260,11 +260,24 @@ paths:
     post:
       tags:
         - cohort
-      summary: Create a cohort
-      description: This can only be done by the logged in user with role TEACHER.
+      summary: Create a new cohort and assign students
+      description: "Creates a new cohort and assigns users with the STUDENT role to it."
       operationId: createCohort
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        description: Create cohort with optional student assignment
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2, 3]
       responses:
         201:
           description: success
@@ -273,19 +286,66 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                  data:
+                  cohort:
+                    type: object
                     properties:
-                      cohort:
-                        $ref: '#/components/schemas/Cohort'
+                      id:
+                        type: integer
+                  studentsAssigned:
+                    type: array
+                    items:
+                      type: integer
         400:
-          description: fail
+          description: fail (invalid users or non-students)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
+        500:
+          description: Internal server error
+    get:
+      tags:
+        - cohort
+      summary: Get all cohorts with students
+      description: 'Retrieves all cohorts along with their students.'
+      operationId: getAllCohorts
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cohorts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        users:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              email:
+                                type: string
+                              role:
+                                type: string
+                              profile:
+                                type: object
+                                properties:
+                                  firstName:
+                                    type: string
+                                  lastName:
+                                    type: string
+        500:
+          description: Internal server error
 components:
   securitySchemes:
     bearerAuth:
@@ -430,7 +490,6 @@ components:
                         type: string
                       profileImageUrl:
                         type: string
-    
     CreatedUser:
       type: object
       properties:

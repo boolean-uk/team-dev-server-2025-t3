@@ -15,8 +15,8 @@ export const create: RequestHandler = async (req, res) => {
     const createdUser = await userToCreate.save()
 
     return sendDataResponse(res, 201, createdUser)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
+    console.log(e)
     return sendMessageResponse(res, 500, 'Unable to create new user')
   }
 }
@@ -37,8 +37,8 @@ export const getById: RequestHandler<
     }
 
     return sendDataResponse(res, 200, foundUser)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
+    console.log(e)
     return sendMessageResponse(res, 500, 'Unable to get user')
   }
 }

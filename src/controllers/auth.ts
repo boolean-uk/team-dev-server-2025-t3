@@ -1,4 +1,4 @@
-import User from '../domain/user.js'
+import User from '../domain/user.ts'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { JWT_EXPIRY, JWT_SECRET } from '../utils/config.js'
@@ -26,6 +26,7 @@ export const login = async (req, res) => {
     const token = generateJwt(foundUser.id)
 
     return sendDataResponse(res, 200, { token, ...foundUser.toJSON() })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to process request')
   }

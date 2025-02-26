@@ -53,10 +53,10 @@ export default class User {
     if (typeof email !== 'string') {
       throw new Error('email must be string')
     }
-    if (typeof biography !== 'string' && biography !== null) {
+    if (typeof biography !== 'string' && biography !== undefined) {
       throw new Error('biography must be string or null')
     }
-    if (typeof githubUrl !== 'string' && githubUrl !== null) {
+    if (typeof githubUrl !== 'string' && githubUrl !== undefined) {
       throw new Error('githubUrl must be string or null')
     }
     const passwordHash = await bcrypt.hash(password, 8)
@@ -67,8 +67,8 @@ export default class User {
       firstName,
       lastName,
       email,
-      biography,
-      githubUrl,
+      biography ?? null,
+      githubUrl ?? null,
       passwordHash
     )
   }

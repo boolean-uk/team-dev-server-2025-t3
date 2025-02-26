@@ -23,17 +23,14 @@ export default class User {
    * @returns {User}
    */
   static fromDb(user: DBUser) {
-    if (!user.profile) {
-      throw new Error("no profile object on user from db, can't create user")
-    }
     return new User(
       user.id,
       user.cohortId,
-      user.profile.firstName,
-      user.profile.lastName,
+      user.profile?.firstName ?? null,
+      user.profile?.lastName ?? null,
       user.email,
-      user.profile.bio,
-      user.profile.githubUrl,
+      user.profile?.bio ?? null,
+      user.profile?.githubUrl ?? null,
       user.password,
       user.role
     )

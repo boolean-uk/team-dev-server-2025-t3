@@ -2,13 +2,9 @@ import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import { JWT_SECRET } from '../utils/config.js'
 import jwt from 'jsonwebtoken'
 import User from '../domain/user.js'
-import type { NextFunction, Response, Request } from 'express'
+import type { RequestHandler } from 'express'
 
-export async function validateTeacherRole(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export const validateTeacherRole: RequestHandler = async (req, res, next) => {
   if (!req.body.user) {
     return sendMessageResponse(res, 500, 'Unable to verify user')
   }
@@ -22,11 +18,11 @@ export async function validateTeacherRole(
   next()
 }
 
-export async function validateAuthentication(
-  req: Request<{ user: User }>,
-  res: Response,
-  next: NextFunction
-) {
+export const validateAuthentication: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
   const header = req.header('authorization')
 
   if (!header) {

@@ -3,8 +3,9 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { JWT_EXPIRY, JWT_SECRET } from '../utils/config.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
+import type { RequestHandler } from 'express'
 
-export const login = async (req, res) => {
+export const login: RequestHandler = async (req, res) => {
   const { email, password } = req.body
 
   if (!email) {
@@ -23,22 +24,31 @@ export const login = async (req, res) => {
       })
     }
 
-    const token = generateJwt(foundUser.id)
+    const token = generateJwt(foundUser!.id!)
 
-    return sendDataResponse(res, 200, { token, ...foundUser.toJSON() })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return sendDataResponse(res, 200, { token, ...foundUser!.toJSON() })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to process request')
   }
 }
 
-function generateJwt(userId) {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRY })
+function generateJwt(userId: number) {
+  return jwt.sign({ userId }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRY
+  } as jwt.SignOptions)
 }
 
-async function validateCredentials(password, user) {
+async function validateCredentials(
+  password: string | undefined,
+  user: User | undefined | null
+) {
   if (!user) {
     return false
+  }
+
+  if (!user.passwordHash) {
+    throw new Error('user without password hash passed to validateCredentials')
   }
 
   if (!password) {

@@ -36,6 +36,14 @@ model Profile {
   lastName    String
   bio         String?
   githubUrl   String?
+  githubUsername String?  // Added field
+  email         String?   // Added field
+  mobile        String?   // Added field
+  role          String?   // Added field
+  specialism    String?   // Added field
+  cohort        String?   // Added field
+  startDate     DateTime? // Added field
+  endDate       DateTime? // Added field
 }
 
 model Cohort {

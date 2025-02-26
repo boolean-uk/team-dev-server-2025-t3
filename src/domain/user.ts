@@ -7,12 +7,12 @@ export default class User {
   public id: number | null
   public cohortId: number | null
   public email: string
-  public firstName: string
-  public lastName: string
+  public firstName: string | null
+  public lastName: string | null
   public bio: string | null
   public githubUrl: string | null
   public passwordHash: string | null
-  public role: Role
+  public role: Role | null
 
   /**
    * This is JSDoc - a way for us to tell other developers what types functions/methods
@@ -44,10 +44,10 @@ export default class User {
     if (typeof password !== 'string') {
       throw new Error('password must be string')
     }
-    if (typeof firstName !== 'string') {
+    if (firstName !== undefined && typeof firstName !== 'string') {
       throw new Error('firstName must be string')
     }
-    if (typeof lastName !== 'string') {
+    if (lastName !== undefined && typeof lastName !== 'string') {
       throw new Error('lastName must be string')
     }
     if (typeof email !== 'string') {
@@ -64,8 +64,8 @@ export default class User {
     return new User(
       null,
       null,
-      firstName,
-      lastName,
+      firstName ?? null,
+      lastName ?? null,
       email,
       biography ?? null,
       githubUrl ?? null,
@@ -76,8 +76,8 @@ export default class User {
   constructor(
     id: number | null,
     cohortId: number | null,
-    firstName: string,
-    lastName: string,
+    firstName: string | null,
+    lastName: string | null,
     email: string,
     bio: string | null,
     githubUrl: string | null,

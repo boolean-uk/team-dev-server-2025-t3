@@ -14,7 +14,8 @@ export const create = async (req, res) => {
     const createdUser = await userToCreate.save()
 
     return sendDataResponse(res, 201, createdUser)
-  } catch (error) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to create new user')
   }
 }
@@ -30,13 +31,14 @@ export const getById = async (req, res) => {
     }
 
     return sendDataResponse(res, 200, foundUser)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to get user')
   }
 }
 
 export const getAll = async (req, res) => {
-  // eslint-disable-next-line camelcase
+   
   const { first_name: firstName } = req.query
 
   let foundUsers

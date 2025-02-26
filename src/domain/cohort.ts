@@ -1,4 +1,4 @@
-import dbClient from '../utils/dbClient.js'
+import dbClient from '../utils/dbClient.ts'
 
 /**
  * Create a new Cohort in the database

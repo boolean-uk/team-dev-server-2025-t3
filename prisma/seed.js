@@ -27,7 +27,6 @@ async function seed() {
 
   await createPost(student.id, 'My first post!')
   await createPost(teacher.id, 'Hello, students')
-
   process.exit(0)
 }
 

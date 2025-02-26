@@ -1,4 +1,4 @@
-import { createCohort } from '../domain/cohort.js'
+import { createCohort } from '../domain/cohort.ts'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 
 export const create = async (req, res) => {
@@ -6,6 +6,7 @@ export const create = async (req, res) => {
     const createdCohort = await createCohort()
 
     return sendDataResponse(res, 201, createdCohort)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to create cohort')
   }

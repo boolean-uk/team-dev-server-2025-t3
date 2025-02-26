@@ -1,7 +1,8 @@
+import type { RequestHandler } from 'express'
 import User from '../domain/user.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 
-export const create = async (req, res) => {
+export const create: RequestHandler = async (req, res) => {
   const userToCreate = await User.fromJson(req.body)
 
   try {
@@ -14,13 +15,18 @@ export const create = async (req, res) => {
     const createdUser = await userToCreate.save()
 
     return sendDataResponse(res, 201, createdUser)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to create new user')
   }
 }
 
-export const getById = async (req, res) => {
+export const getById: RequestHandler<
+  { id: string },
+  unknown,
+  unknown,
+  unknown
+> = async (req, res) => {
   const id = parseInt(req.params.id)
 
   try {
@@ -31,17 +37,22 @@ export const getById = async (req, res) => {
     }
 
     return sendDataResponse(res, 200, foundUser)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return sendMessageResponse(res, 500, 'Unable to get user')
   }
 }
 
-export const getAll = async (req, res) => {
-   
+export const getAll: RequestHandler<
+  unknown,
+  unknown,
+  unknown,
+  { first_name: string },
+  Record<string, unknown>
+> = async (req, res) => {
   const { first_name: firstName } = req.query
 
-  let foundUsers
+  let foundUsers: User[]
 
   if (firstName) {
     foundUsers = await User.findManyByFirstName(firstName)
@@ -58,7 +69,7 @@ export const getAll = async (req, res) => {
   return sendDataResponse(res, 200, { users: formattedUsers })
 }
 
-export const updateById = async (req, res) => {
+export const updateById: RequestHandler = async (req, res) => {
   const { cohort_id: cohortId } = req.body
 
   if (!cohortId) {

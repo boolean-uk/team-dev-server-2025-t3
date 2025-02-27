@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import { JWT_EXPIRY, JWT_SECRET } from '../utils/config.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import type { RequestHandler } from 'express'
+import type { Role } from '@prisma/client'
 
 export const login: RequestHandler = async (req, res) => {
   const { email, password } = req.body
@@ -24,7 +25,7 @@ export const login: RequestHandler = async (req, res) => {
       })
     }
 
-    const token = generateJwt(foundUser!.id!)
+    const token = generateJwt(foundUser!.id!, foundUser!.role ?? 'STUDENT');
 
     return sendDataResponse(res, 200, { token, ...foundUser!.toJSON() })
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,8 +34,8 @@ export const login: RequestHandler = async (req, res) => {
   }
 }
 
-function generateJwt(userId: number) {
-  return jwt.sign({ userId }, JWT_SECRET, {
+function generateJwt(userId: number, role: Role) {
+  return jwt.sign({ userId, role }, JWT_SECRET, {
     expiresIn: JWT_EXPIRY
   } as jwt.SignOptions)
 }

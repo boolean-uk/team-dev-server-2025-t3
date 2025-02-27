@@ -174,14 +174,6 @@ export const deleteById = async (req, res) => {
     res.clearCookie('token') // If using cookies
     res.setHeader('Authorization', '') // If using JWT
 
-    // Respond immediately before deleting user
-    sendDataResponse(res, 200, {
-      message: 'User logged out successfully. Account deletion will proceed.'
-    })
-
-    // Small delay to allow client to process logout before deletion
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
     // Check if user exists before deletion
     const existingUser = await dbClient.user.findUnique({
       where: { id: userId }
@@ -206,7 +198,10 @@ export const deleteById = async (req, res) => {
       where: { id: userId }
     })
 
-    console.log(`User ${userId} deleted successfully.`)
+    // Send success response
+    return sendDataResponse(res, 200, {
+      message: `User ${userId} deleted successfully.`
+    })
   } catch (error) {
     console.error('Error deleting user:', error)
     return sendMessageResponse(res, 500, 'Unable to delete user')

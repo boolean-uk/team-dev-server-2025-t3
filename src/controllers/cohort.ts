@@ -78,7 +78,13 @@ export const getCohort: RequestHandler = async (req, res) => {
             select: {
               id: true,
               email: true,
-              role: true
+              role: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
             }
           }
         }

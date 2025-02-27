@@ -26,6 +26,7 @@ model User {
   cohort        Cohort?   @relation(fields: [cohortId], references: [id])
   posts         Post[]
   deliveryLogs  DeliveryLog[]
+  exercises     StudentExercise[]
 }
 
 model Profile {
@@ -43,7 +44,7 @@ model Cohort {
   users         User[]
   name          String
   deliveryLogs  DeliveryLog[]
-    
+  courses       Course[]
 }
 
 model Post {
@@ -71,4 +72,45 @@ model DeliveryLogLine {
   content   String
   logId     Int
   log       DeliveryLog   @relation(fields: [logId], references: [id])
+}
+
+
+model Course {
+  id        Int           @id @default(autoincrement())
+  name      String
+  modules   Module[]
+  cohorts   Cohort[]
+}
+
+model Module {
+  id        Int           @id @default(autoincrement())
+  name      String
+  courseId  Int
+  course    Course      @relation(fields: [courseId], references: [id])
+  units     Unit[]
+}
+
+model Unit {
+  id        Int           @id @default(autoincrement())
+  name      String
+  moduleId  Int
+  module    Module        @relation(fields: [moduleId], references: [id])
+  exercises Exercise[]
+}
+
+model Exercise {
+  id        Int           @id @default(autoincrement())
+  name      String
+  unitId    Int
+  unit      Unit          @relation(fields: [unitId], references: [id])
+  studentExercises  StudentExercise[]
+}
+
+model StudentExercise {
+  id        Int           @id @default(autoincrement())
+  completed Boolean
+  exerciseId  Int
+  exercise  Exercise      @relation(fields: [exerciseId], references: [id])
+  userId    Int
+  user   User             @relation(fields: [userId], references: [id])
 }

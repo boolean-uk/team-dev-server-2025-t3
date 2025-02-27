@@ -3,7 +3,29 @@ import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function seed() {
+  const course = await createCourse('Software Development')
+  const module1 = await createModule(
+    'User Interface with HTML & CSS',
+    course.id
+  )
+  const unit1 = await createUnit('TDD', module1.id)
+  await createExercise('Bobs bagels', unit1.id)
+  await createExercise('Cohort manager challenge', unit1.id)
+  const unit2 = await createUnit('Spotify', module1.id)
+  await createExercise('Spotify challenge', unit2.id)
+  await createExercise('Quotebook', unit2.id)
+  const unit3 = await createUnit('Twitter', module1.id)
+  await createExercise('Twitter challenge', unit3.id)
+  await createExercise('Scientific paper', unit3.id)
+
   const cohort = await createCohort()
+
+  prisma.cohort.update({
+    where: { id: cohort.id },
+    data: {
+      courses: { set: [{ id: course.id }] }
+    }
+  })
 
   const student = await createUser(
     'student@test.com',
@@ -100,6 +122,49 @@ async function createUser(
   console.info(`${role} created`, user)
 
   return user
+}
+
+async function createCourse(name: string) {
+  const course = await prisma.course.create({
+    data: {
+      name
+    }
+  })
+  console.info('course created', course)
+  return course
+}
+
+async function createModule(name: string, courseId: number) {
+  const module = await prisma.module.create({
+    data: {
+      courseId,
+      name
+    }
+  })
+  console.info('module created', module)
+  return module
+}
+
+async function createUnit(name: string, moduleId: number) {
+  const unit = await prisma.unit.create({
+    data: {
+      moduleId,
+      name
+    }
+  })
+  console.info('unit created', unit)
+  return unit
+}
+
+async function createExercise(name: string, unitId: number) {
+  const exercise = await prisma.exercise.create({
+    data: {
+      unitId,
+      name
+    }
+  })
+  console.info('exercise created', exercise)
+  return exercise
 }
 
 seed().catch(async (e) => {

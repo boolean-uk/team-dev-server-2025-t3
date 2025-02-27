@@ -17,9 +17,10 @@ paths:
       tags:
         - user
       summary: Create user
-      description: Create new user
+      description: Create a new user with a unique email.
       operationId: createUser
       requestBody:
+        required: true
         description: User registration details
         content:
           application/json:
@@ -27,139 +28,205 @@ paths:
               $ref: '#/components/schemas/CreateUser'
       responses:
         '201':
-          description: Created
+          description: User created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreatedUser'
+        '400':
+          description: Email already in use
+        '500':
+          description: Internal server error
+
     get:
       tags:
         - user
-      summary: Get all users by first name if provided
-      description: ''
+      summary: Get all users
       operationId: getAllUsers
       security:
         - bearerAuth: []
       parameters:
         - name: firstName
           in: query
-          description: Search all users by first name if provided (case-sensitive and exact string matches only)
+          description: Search users by first name (case-sensitive).
           schema:
             type: string
       responses:
         '200':
-          description: successful operation
+          description: Successful operation
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AllUsers'
-        '400':
-          description: fail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: fail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+
   /login:
     post:
       tags:
         - user
-      summary: Localhost Login
-      description: ''
+      summary: User Login
+      description: Authenticates a user and returns a token.
       operationId: loginUser
       requestBody:
+        required: true
         description: User login information
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/login'
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: 'user@example.com'
+                password:
+                  type: string
+                  format: password
+                  example: 'SecurePassword123!'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/loginRes'
-
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                      role:
+                        type: string
         '400':
           description: Invalid username/password supplied
+        '500':
+          description: Internal server error
 
   /users/{id}:
     get:
       tags:
         - user
-      summary: Get user by user id
-      description: ''
+      summary: Get user by ID
       operationId: getUserByID
       security:
         - bearerAuth: []
       parameters:
         - name: id
           in: path
-          description: 'The name that needs to be fetched. Use user1 for testing. '
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
-          description: successful operation
+          description: Successful operation
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  data:
-                    $ref: '#/components/schemas/User'
-
-        '400':
-          description: fail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/User'
         '404':
-          description: fail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    patch:
+          description: User not found
+        '500':
+          description: Internal server error
+
+    put:
       tags:
         - user
-      summary: Update a user
-      description: Only users with a TEACHER role can update the cohortId or role. Users with Students role can only update their own details.
-      operationId: userUpdate
+      summary: Update user by ID (Full)
+      description: Allows a user to update their own account details.
+      operationId: updateUserById
       security:
         - bearerAuth: []
       parameters:
         - name: id
           in: path
-          description: 'The user id that needs to be updated'
           required: true
           schema:
-            type: string
+            type: integer
       requestBody:
-        description: The profile info
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateUser'
       responses:
-        '201':
-          description: Successful operation
+        '200':
+          description: User updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreatedUser'
-        '401':
-          description: fail
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+
+    patch:
+      tags:
+        - user
+      summary: Partially update a user
+      description: Only teachers can update the `cohortId` or `role`. Students can only update their own details.
+      operationId: updateUserPartial
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchUser'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+
+    delete:
+      tags:
+        - user
+      summary: Logout and Delete user by ID
+      description: Logs out the user before deleting their own account to prevent session-related crashes.
+      operationId: deleteUserById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User logged out and scheduled for deletion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'User logged out successfully. Account deletion will proceed.'
+        '403':
+          description: Forbidden - User cannot delete another account
           content:
             application/json:
               schema:
@@ -597,6 +664,7 @@ paths:
         - bearerAuth: []
       requestBody:
         required: true
+        description: Create cohort with optional student assignment
         content:
           application/json:
             schema:
@@ -606,10 +674,7 @@ paths:
                   type: array
                   items:
                     type: integer
-                  description: 'Array of user IDs to assign to the cohort'
-                name:
-                  type: string
-                  description: 'Name of the created cohort'
+                  example: [1, 2, 3]
       responses:
         201:
           description: Cohort created successfully
@@ -780,18 +845,16 @@ components:
           type: integer
         email:
           type: string
-        role:
-          type: string
-        cohortId:
-          type: integer
         firstName:
           type: string
         lastName:
           type: string
         bio:
           type: string
+          nullable: true
         githubUrl:
           type: string
+          nullable: true
 
     CreateUser:
       type: object
@@ -802,32 +865,53 @@ components:
           type: string
         email:
           type: string
-        bio:
-          type: string
-        githubUrl:
-          type: string
         password:
           type: string
-
-    UpdateUser:
+    PatchUser:
       type: object
       properties:
         email:
           type: string
-        password:
-          type: string
+          nullable: true
         cohortId:
           type: integer
+          nullable: true
         role:
           type: string
+          nullable: true
         firstName:
           type: string
+          nullable: true
         lastName:
           type: string
+          nullable: true
         bio:
           type: string
+          nullable: true
         githubUrl:
           type: string
+          nullable: true
+
+    UpdateUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+        email:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        githubUrl:
+          type: string
+          nullable: true
+        password:
+          type: string
+          nullable: true
 
     Posts:
       type: object

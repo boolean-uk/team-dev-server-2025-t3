@@ -11,7 +11,7 @@ export default class User {
   public lastName: string | null
   public bio: string | null
   public githubUrl: string | null
-  public passwordHash: string | null
+  public passwordHash?: string | null
   public role: Role | null
 
   /**
@@ -29,7 +29,7 @@ export default class User {
       user.email,
       user.profile?.bio ?? null,
       user.profile?.githubUrl ?? null,
-      user.password,
+      user.password ?? '',
       user.role
     )
   }
@@ -117,16 +117,16 @@ export default class User {
       Prisma.UserCreateInput,
       Prisma.UserUncheckedCreateInput
     > = {
-      email: this.email,
-      password: this.passwordHash,
-      role: this.role as Role
+      email: this.email ?? '', // Ensure email is never undefined
+      password: this.passwordHash ?? '', // Ensure passwordHash is never undefined
+      role: this.role ?? ('STUDENT' as Role) // Ensure role is never undefined
     }
 
-    if (this.cohortId) {
+    // Explicitly add cohort only if cohortId exists
+    // Explicitly add cohort only if cohortId exists
+    if (this.cohortId !== null && this.cohortId !== undefined) {
       data.cohort = {
-        connect: {
-          id: this.cohortId
-        }
+        connect: { id: this.cohortId }
       }
     }
 

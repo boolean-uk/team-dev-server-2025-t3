@@ -44,6 +44,14 @@ export async function validateAuthentication(req, res, next) {
 
   const decodedToken = jwt.decode(token)
   const foundUser = await User.findById(decodedToken.userId)
+
+  // ✅ **Check if the user exists before proceeding**
+  if (!foundUser) {
+    return sendDataResponse(res, 401, {
+      authentication: 'User no longer exists. Please log in again.'
+    })
+  }
+
   delete foundUser.passwordHash
 
   req.user = foundUser

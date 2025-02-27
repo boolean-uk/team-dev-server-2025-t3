@@ -1,13 +1,15 @@
+import type { RequestHandler } from 'express'
 import { createCohort } from '../domain/cohort.ts'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import dbClient from '../utils/dbClient'
 
-export const create = async (req, res) => {
+export const create: RequestHandler = async (_req, res) => {
   try {
     const { userIds } = req.body // Expect an array of user IDs
 
     // Create the cohort
     const createdCohort = await createCohort()
+
 
     if (userIds && userIds.length > 0) {
       // Directly update users without filtering (Prisma ignores invalid ones)

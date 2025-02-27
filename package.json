@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "tsc": "tsc",
     "lint:fix": "eslint --fix",
-    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
+    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
+    "tsc": "tsc"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -53,7 +54,6 @@
     "express": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
     "swagger-ui-express": "^5.0.0",
-    "tsx": "^4.19.3",
     "yaml": "^2.3.4"
   }
 }

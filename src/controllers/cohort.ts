@@ -5,10 +5,10 @@ import dbClient from '../utils/dbClient'
 
 export const create: RequestHandler = async (req, res) => {
   try {
-    const { userIds } = req.body // Expect an array of user IDs
+    const { userIds, name } = req.body // Expect an array of user IDs
 
     // Create the cohort
-    const createdCohort = await createCohort()
+    const createdCohort = await createCohort(name);
 
     if (userIds && userIds.length > 0) {
       // Directly update users without filtering (Prisma ignores invalid ones)

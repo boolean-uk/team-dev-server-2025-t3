@@ -277,6 +277,9 @@ paths:
                   items:
                     type: integer
                   description: 'Array of user IDs to assign to the cohort'
+                name:
+                  type: string
+                  description: 'Name of the created cohort'
       responses:
         201:
           description: Cohort created successfully
@@ -319,6 +322,8 @@ paths:
                       properties:
                         id:
                           type: integer
+                        name:
+                          type: string
                         users:
                           type: array
                           items:

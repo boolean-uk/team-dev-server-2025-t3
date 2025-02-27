@@ -19,8 +19,6 @@ export default class User {
    * take as inputs, what types they return, and other useful information that JS doesn't have built in
    * @tutorial https://www.valentinog.com/blog/jsdoc
    *
-   * @param { { id: int, cohortId: int, email: string, profile: { firstName: string, lastName: string, bio: string, githubUrl: string } } } user
-   * @returns {User}
    */
   static fromDb(user: DBUser) {
     return new User(
@@ -126,11 +124,8 @@ export default class User {
 
     if (this.cohortId) {
       data.cohort = {
-        connectOrCreate: {
-          where: {
-            id: this.cohortId
-          },
-          create: {}
+        connect: {
+          id: this.cohortId
         }
       }
     }
@@ -156,11 +151,11 @@ export default class User {
   }
 
   static async findByEmail(email: string) {
-    return User._findByUnique('email', email)
+    return User._findByEmail(email)
   }
 
   static async findById(id: number) {
-    return User._findByUnique('id', id)
+    return User._findById(id)
   }
 
   static async findManyByFirstName(firstName: string) {
@@ -172,10 +167,27 @@ export default class User {
     return users.map((user) => User.fromDb(user))
   }
 
-  static async _findByUnique(key: string, value: string | number) {
+  static async _findByEmail(email: string) {
     const foundUser = await dbClient.user.findUnique({
       where: {
-        [key]: value
+        email
+      },
+      include: {
+        profile: true
+      }
+    })
+
+    if (foundUser) {
+      return User.fromDb(foundUser)
+    }
+
+    return null
+  }
+
+  static async _findById(id: number) {
+    const foundUser = await dbClient.user.findUnique({
+      where: {
+        id
       },
       include: {
         profile: true

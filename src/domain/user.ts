@@ -29,7 +29,7 @@ export default class User {
       user.email,
       user.profile?.bio ?? null,
       user.profile?.githubUrl ?? null,
-      user.password,
+      user.password ?? '',
       user.role
     )
   }
@@ -122,11 +122,10 @@ export default class User {
       role: this.role as Role
     }
 
-    if (this.cohortId) {
-      data.cohort = {
-        connect: {
-          id: this.cohortId
-        }
+    // Explicitly add cohort only if cohortId exists
+    if (this.cohortId !== null && this.cohortId !== undefined) {
+      ;(data as Prisma.UserCreateInput).cohort = {
+        connect: { id: this.cohortId }
       }
     }
 

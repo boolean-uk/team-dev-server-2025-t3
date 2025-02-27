@@ -231,19 +231,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /profiles:
     post:
       tags:
@@ -272,19 +259,10 @@ paths:
                 githubUrl:
                   type: string
                   nullable: true
-                githubUsername:
-                  type: string
-                  nullable: true
                 mobile:
                   type: string
                   nullable: true
-                role:
-                  type: string
-                  nullable: true
                 specialism:
-                  type: string
-                  nullable: true
-                cohort:
                   type: string
                   nullable: true
                 startDate:
@@ -305,6 +283,8 @@ paths:
                 properties:
                   profile:
                     type: object
+        404:
+          description: User not found
         500:
           description: Internal server error
 
@@ -392,19 +372,10 @@ paths:
                 githubUrl:
                   type: string
                   nullable: true
-                githubUsername:
-                  type: string
-                  nullable: true
                 mobile:
                   type: string
                   nullable: true
-                role:
-                  type: string
-                  nullable: true
                 specialism:
-                  type: string
-                  nullable: true
-                cohort:
                   type: string
                   nullable: true
                 startDate:
@@ -425,6 +396,10 @@ paths:
                 properties:
                   profile:
                     type: object
+        403:
+          description: Unauthorized to update profile
+        404:
+          description: Profile not found
         500:
           description: Internal server error
 
@@ -452,9 +427,14 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Profile deleted successfully'
+                    example: "Profile deleted successfully"
+        403:
+          description: Unauthorized to delete profile
+        404:
+          description: Profile not found
         500:
           description: Internal server error
+
   /posts:
     post:
       tags:
@@ -917,10 +897,12 @@ components:
       properties:
         firstName:
           type: string
+          nullable: true
         lastName:
           type: string
         email:
           type: string
+          nullable: true
         bio:
           type: string
           nullable: true

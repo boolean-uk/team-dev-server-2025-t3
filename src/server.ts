@@ -5,6 +5,7 @@ import swaggerUi from 'swagger-ui-express'
 import express from 'express'
 import cors from 'cors'
 import userRouter from './routes/user.js'
+import profileRouter from './routes/profile'
 import postRouter from './routes/post.js'
 import authRouter from './routes/auth.js'
 import cohortRouter from './routes/cohort.js'
@@ -22,6 +23,7 @@ const swaggerDoc = YAML.parse(docFile)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc))
 
 app.use('/users', userRouter)
+app.use('/profiles', profileRouter)
 app.use('/posts', postRouter)
 app.use('/cohorts', cohortRouter)
 app.use('/logs', deliveryLogRouter)

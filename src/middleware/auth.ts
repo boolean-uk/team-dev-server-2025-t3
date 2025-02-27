@@ -2,13 +2,14 @@ import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import { JWT_SECRET } from '../utils/config.js'
 import jwt from 'jsonwebtoken'
 import User from '../domain/user.js'
+import type { RequestHandler } from 'express'
 
-export async function validateTeacherRole(req, res, next) {
-  if (!req.user) {
+export const validateTeacherRole: RequestHandler = async (req, res, next) => {
+  if (!req.body.user) {
     return sendMessageResponse(res, 500, 'Unable to verify user')
   }
 
-  if (req.user.role !== 'TEACHER') {
+  if (req.body.user.role !== 'TEACHER') {
     return sendDataResponse(res, 403, {
       authorization: 'You are not authorized to perform this action'
     })
@@ -17,7 +18,11 @@ export async function validateTeacherRole(req, res, next) {
   next()
 }
 
-export async function validateAuthentication(req, res, next) {
+export const validateAuthentication: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
   const header = req.header('authorization')
 
   if (!header) {
@@ -42,18 +47,28 @@ export async function validateAuthentication(req, res, next) {
     })
   }
 
-  const decodedToken = jwt.decode(token)
-  const foundUser = await User.findById(decodedToken.userId)
-  delete foundUser.passwordHash
+  const decodedToken = jwt.decode(token) as { userId: number }
+  if (!decodedToken) {
+    return sendDataResponse(res, 401, {
+      authentication: 'unable to decode token'
+    })
+  }
 
-  req.user = foundUser
+  const foundUser = await User.findById(decodedToken.userId)
+  foundUser!.passwordHash = null
+
+  req.body.user = foundUser
 
   next()
 }
 
-function validateToken(token) {
+function validateToken(token: string) {
   if (!token) {
     return false
+  }
+
+  if (!JWT_SECRET) {
+    throw new Error('No JWT_SECRET set')
   }
 
   return jwt.verify(token, JWT_SECRET, (error) => {
@@ -61,7 +76,7 @@ function validateToken(token) {
   })
 }
 
-function validateTokenType(type) {
+function validateTokenType(type: string) {
   if (!type) {
     return false
   }

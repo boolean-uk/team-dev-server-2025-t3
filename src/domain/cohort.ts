@@ -13,7 +13,9 @@ export async function createCohort() {
 }
 
 export class Cohort {
-  constructor(id = null) {
+  public id: number | null
+
+  constructor(id: number | null = null) {
     this.id = id
   }
 

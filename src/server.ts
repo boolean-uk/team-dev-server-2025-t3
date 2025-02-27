@@ -29,7 +29,7 @@ app.use('/cohorts', cohortRouter)
 app.use('/logs', deliveryLogRouter)
 app.use('/', authRouter)
 
-app.get('*', (req, res) => {
+app.get('*', (_req, res) => {
   res.status(404).json({
     status: 'fail',
     data: {

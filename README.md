@@ -26,6 +26,7 @@ Once you have complete the above guide, continue to the steps below.
 
 ## API Spec
 
+[todo]: # Deploy and update the link below
 
 [Deployed API Spec](https://UPDATEME)
 
@@ -46,6 +47,5 @@ Please review the [./prisma/seed.js](./prisma/seed.js) file to see the data that
 The users that are seeded can be used to test the API endpoints and to log into the client app.
 
 ## DATABASE ERD
-
 
 TODO

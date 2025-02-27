@@ -3,7 +3,6 @@ import { JWT_SECRET } from '../utils/config.js'
 import jwt from 'jsonwebtoken'
 import User from '../domain/user.js'
 import type { RequestHandler } from 'express'
-import type { AuthenticatedRequest } from '../types'
 
 export const validateTeacherRole: RequestHandler = async (req, res, next) => {
   if (!req.body.user) {
@@ -69,12 +68,11 @@ export const validateAuthentication: RequestHandler = async (
   }
 
   // ✅ Assign the user to `req.user`
-(req as AuthenticatedRequest).user = {
-  id: foundUser.id!, // Ensure it's not null
-  email: foundUser.email ?? '', // Default to empty string if null
-  role: foundUser.role ?? 'STUDENT' // Default to 'STUDENT' if null
-}
-
+  req.body.user = {
+    id: foundUser.id!, // Ensure it's not null
+    email: foundUser.email ?? '', // Default to empty string if null
+    role: foundUser.role ?? 'STUDENT' // Default to 'STUDENT' if null
+  }
 
   next()
 }
@@ -94,7 +92,6 @@ function validateToken(token: string) {
   } catch {
     return false
   }
-
 }
 
 function validateTokenType(type: string) {

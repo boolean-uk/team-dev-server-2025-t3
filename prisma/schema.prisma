@@ -41,6 +41,7 @@ model Profile {
 model Cohort {
   id            Int           @id @default(autoincrement())
   users         User[]
+  name          String
   deliveryLogs  DeliveryLog[]
     
 }

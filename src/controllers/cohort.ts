@@ -1,8 +1,6 @@
 import { createCohort } from '../domain/cohort.ts'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import dbClient from '../utils/dbClient'
 
 export const create = async (req, res) => {
   try {
@@ -11,24 +9,12 @@ export const create = async (req, res) => {
     // Create the cohort
     const createdCohort = await createCohort()
 
-    // Validate user IDs and ensure they have role STUDENT
     if (userIds && userIds.length > 0) {
-      const validStudents = await prisma.user.findMany({
+      // Directly update users without filtering (Prisma ignores invalid ones)
+      await dbClient.user.updateMany({
         where: {
-          id: { in: userIds },
-          role: 'STUDENT' // Only include users with the STUDENT role
-        }
-      })
-
-      if (validStudents.length !== userIds.length) {
-        return sendDataResponse(res, 400, {
-          error: 'One or more user IDs are invalid or not students'
-        })
-      }
-
-      // Assign students to the cohort
-      await prisma.user.updateMany({
-        where: { id: { in: userIds } },
+          id: { in: userIds } // No role restriction, assigns anyone
+        },
         data: { cohortId: createdCohort.id }
       })
     }
@@ -43,13 +29,12 @@ export const create = async (req, res) => {
   }
 }
 
-// Get all cohorts with their students
+// Get all cohorts with their members
 export const getAllCohorts = async (req, res) => {
   try {
-    const cohorts = await prisma.cohort.findMany({
+    const cohorts = await dbClient.cohort.findMany({
       include: {
         users: {
-          where: { role: 'STUDENT' }, // Only fetch students
           select: {
             id: true,
             email: true,

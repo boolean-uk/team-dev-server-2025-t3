@@ -1,11 +1,7 @@
 name: CI
 on: [push, pull_request]
-env:
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  JWT_TOKEN: ${{ secrets.JWT_TOKEN }}
-  JWT_EXPIRY: ${{ secrets.JWT_EXPIRY }}
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -13,5 +9,5 @@ jobs:
         with:
           node-version: 'lts/*'
       - run: npm ci
-      - run: npx eslint src
-      - run: npx prisma migrate reset --force --skip-seed
+      - run: npm run lint
+      - run: npm run tsc

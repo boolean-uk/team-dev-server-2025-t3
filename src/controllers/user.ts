@@ -1,11 +1,10 @@
 import dbClient from '../utils/dbClient.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import bcrypt from 'bcrypt'
-import type { Response } from 'express'
-import type { AuthenticatedRequest } from '../types'
+import type { RequestHandler } from 'express'
 
 // Create user (ensures unique email)
-export const create = async (req: AuthenticatedRequest, res: Response) => {
+export const create: RequestHandler = async (req, res) => {
   try {
     const {
       email,
@@ -56,7 +55,7 @@ export const create = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 // Get user by ID (retrieves user with the required fields)
-export const getById = async (req: AuthenticatedRequest, res: Response) => {
+export const getById: RequestHandler = async (req, res) => {
   try {
     const userId = parseInt(req.params['id'])
 
@@ -87,7 +86,7 @@ export const getById = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 // Get all users (retrieves all users with required fields)
-export const getAll = async (_req: AuthenticatedRequest, res: Response) => {
+export const getAll: RequestHandler = async (_req, res) => {
   try {
     const users = await dbClient.user.findMany({
       include: { profile: true }
@@ -113,12 +112,12 @@ export const getAll = async (_req: AuthenticatedRequest, res: Response) => {
 }
 
 // Update user (only the logged-in user can update their own account)
-export const updateById = async (req: AuthenticatedRequest, res: Response) => {
+export const updateById: RequestHandler = async (req, res) => {
   try {
     const userId = parseInt(req.params['id'])
 
     // Ensure the logged-in user can only update their own account
-    if (!req.user || req.user.id !== userId) {
+    if (!req.body.user || req.body.user.id !== userId) {
       return sendDataResponse(res, 403, {
         error: 'You are not allowed to update this user'
       })
@@ -156,19 +155,19 @@ export const updateById = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 // Delete user (only logged-in user can delete their own account)
-export const deleteById = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteById: RequestHandler = async (req, res) => {
   try {
     const userId = parseInt(req.params['id'])
 
     // Ensure the logged-in user can only delete their own account
-    if (!req.user || req.user.id !== userId) {
+    if (!req.body.user || req.body.user.id !== userId) {
       return sendDataResponse(res, 403, {
         error: 'You are not allowed to delete this user'
       })
     }
 
     // Remove the user from the request before deletion
-    req.user = undefined
+    req.body.user = undefined
 
     // Clear authentication session/token
     res.clearCookie('token') // If using cookies

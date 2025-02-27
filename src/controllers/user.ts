@@ -1,9 +1,10 @@
 import dbClient from '../utils/dbClient.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import bcrypt from 'bcrypt'
+import { Request, Response } from 'express'
 
 // Create user (ensures unique email)
-export const create = async (req, res) => {
+export const create = async (req: Request, res: Response) => {
   try {
     const {
       email,
@@ -54,7 +55,7 @@ export const create = async (req, res) => {
 }
 
 // Get user by ID (retrieves user with the required fields)
-export const getById = async (req, res) => {
+export const getById = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.id)
 
@@ -85,7 +86,7 @@ export const getById = async (req, res) => {
 }
 
 // Get all users (retrieves all users with required fields)
-export const getAll = async (req, res) => {
+export const getAll = async (_req: Request, res: Response) => {
   try {
     const users = await dbClient.user.findMany({
       include: { profile: true }
@@ -111,7 +112,7 @@ export const getAll = async (req, res) => {
 }
 
 // Update user (only the logged-in user can update their own account)
-export const updateById = async (req, res) => {
+export const updateById = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.id)
 
@@ -124,13 +125,11 @@ export const updateById = async (req, res) => {
 
     const { firstName, lastName, email, bio, githubUrl, password } = req.body
 
-    // Prepare update data for User
-    const userUpdateData = { email }
+    const userUpdateData: { email?: string; password?: string } = {}
 
-    // If password is updated, hash it before saving
+    if (email) userUpdateData.email = email
     if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10)
-      userUpdateData.password = hashedPassword
+      userUpdateData.password = await bcrypt.hash(password, 10)
     }
 
     // Update User
@@ -156,7 +155,7 @@ export const updateById = async (req, res) => {
 }
 
 // Delete user (only logged-in user can delete their own account)
-export const deleteById = async (req, res) => {
+export const deleteById = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.id)
 

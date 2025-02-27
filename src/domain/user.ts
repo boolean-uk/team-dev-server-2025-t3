@@ -11,7 +11,7 @@ export default class User {
   public lastName: string | null
   public bio: string | null
   public githubUrl: string | null
-  public passwordHash: string | null
+  public passwordHash?: string | null
   public role: Role | null
 
   /**

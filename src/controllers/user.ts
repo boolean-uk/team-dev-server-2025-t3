@@ -125,7 +125,7 @@ export const updateById = async (req, res) => {
     const { firstName, lastName, email, bio, githubUrl, password } = req.body
 
     // Prepare update data for User
-    let userUpdateData = { email }
+    const userUpdateData = { email }
 
     // If password is updated, hash it before saving
     if (password) {

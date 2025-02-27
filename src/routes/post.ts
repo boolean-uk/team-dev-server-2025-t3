@@ -7,7 +7,7 @@ const router = Router()
 router.post('/', validateAuthentication, create)
 router.get('/', validateAuthentication, getAll)
 router.get('/sorted', validateAuthentication, getAllSortedByDate)
-router.get('/sortedbyuser',validateAuthentication,getAllByUserSorted)
+router.get('/mine',validateAuthentication,getAllByUserSorted)
 router.put('/:id', validateAuthentication,update)
 router.delete('/:id', validateAuthentication, remove)
 

@@ -1,80 +1,209 @@
-import type { RequestHandler } from 'express'
-import User from '../domain/user.js'
+import dbClient from '../utils/dbClient.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
+import bcrypt from 'bcrypt'
+import type { Response } from 'express'
+import type { AuthenticatedRequest } from '../types'
 
-export const create: RequestHandler = async (req, res) => {
-  const userToCreate = await User.fromJson(req.body)
-
+// Create user (ensures unique email)
+export const create = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const existingUser = await User.findByEmail(userToCreate.email)
+    const {
+      email,
+      password,
+      cohortId,
+      firstName,
+      lastName,
+      bio,
+      githubUrl,
+      role
+    } = req.body
 
+    // Check if the email is already in use
+    const existingUser = await dbClient.user.findUnique({ where: { email } })
     if (existingUser) {
-      return sendDataResponse(res, 400, { email: 'Email already in use' })
+      return sendDataResponse(res, 400, { error: 'Email is already in use' })
     }
 
-    const createdUser = await userToCreate.save()
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Create the user
+    const createdUser = await dbClient.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        role,
+        cohortId,
+        profile: {
+          create: {
+            firstName,
+            lastName,
+            bio,
+            githubUrl
+          }
+        }
+      },
+      include: {
+        profile: true
+      }
+    })
 
     return sendDataResponse(res, 201, createdUser)
-  } catch (e) {
-    console.log(e)
+  } catch (error) {
+    console.error('Error creating user:', error)
     return sendMessageResponse(res, 500, 'Unable to create new user')
   }
 }
 
-export const getById: RequestHandler<
-  { id: string },
-  unknown,
-  unknown,
-  unknown
-> = async (req, res) => {
-  const id = parseInt(req.params.id)
-
+// Get user by ID (retrieves user with the required fields)
+export const getById = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const foundUser = await User.findById(id)
+    const userId = parseInt(req.params['id'])
+
+    const foundUser = await dbClient.user.findUnique({
+      where: { id: userId },
+      include: { profile: true }
+    })
 
     if (!foundUser) {
-      return sendDataResponse(res, 404, { id: 'User not found' })
+      return sendDataResponse(res, 404, { error: 'User not found' })
     }
 
-    return sendDataResponse(res, 200, foundUser)
-  } catch (e) {
-    console.log(e)
+    return sendDataResponse(res, 200, {
+      id: foundUser.id,
+      cohortId: foundUser.cohortId,
+      email: foundUser.email,
+      firstName: foundUser.profile?.firstName,
+      lastName: foundUser.profile?.lastName,
+      bio: foundUser.profile?.bio,
+      githubUrl: foundUser.profile?.githubUrl,
+      password: foundUser.password,
+      role: foundUser.role
+    })
+  } catch (error) {
+    console.error('Error fetching user:', error)
     return sendMessageResponse(res, 500, 'Unable to get user')
   }
 }
 
-export const getAll: RequestHandler<
-  unknown,
-  unknown,
-  unknown,
-  { first_name: string },
-  Record<string, unknown>
-> = async (req, res) => {
-  const { first_name: firstName } = req.query
+// Get all users (retrieves all users with required fields)
+export const getAll = async (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const users = await dbClient.user.findMany({
+      include: { profile: true }
+    })
 
-  let foundUsers: User[]
+    const formattedUsers = users.map((user) => ({
+      id: user.id,
+      cohortId: user.cohortId,
+      email: user.email,
+      firstName: user.profile?.firstName,
+      lastName: user.profile?.lastName,
+      bio: user.profile?.bio,
+      githubUrl: user.profile?.githubUrl,
+      password: user.password,
+      role: user.role
+    }))
 
-  if (firstName) {
-    foundUsers = await User.findManyByFirstName(firstName)
-  } else {
-    foundUsers = await User.findAll()
+    return sendDataResponse(res, 200, { users: formattedUsers })
+  } catch (error) {
+    console.error('Error fetching users:', error)
+    return sendMessageResponse(res, 500, 'Unable to fetch users')
   }
-
-  const formattedUsers = foundUsers.map((user) => {
-    return {
-      ...user.toJSON().user
-    }
-  })
-
-  return sendDataResponse(res, 200, { users: formattedUsers })
 }
 
-export const updateById: RequestHandler = async (req, res) => {
-  const { cohort_id: cohortId } = req.body
+// Update user (only the logged-in user can update their own account)
+export const updateById = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = parseInt(req.params['id'])
 
-  if (!cohortId) {
-    return sendDataResponse(res, 400, { cohort_id: 'Cohort ID is required' })
+    // Ensure the logged-in user can only update their own account
+    if (!req.user || req.user.id !== userId) {
+      return sendDataResponse(res, 403, {
+        error: 'You are not allowed to update this user'
+      })
+    }
+
+    const { firstName, lastName, email, bio, githubUrl, password } = req.body
+
+    const userUpdateData: { email?: string; password?: string } = {}
+
+    if (email) userUpdateData.email = email
+    if (password) {
+      userUpdateData.password = await bcrypt.hash(password, 10)
+    }
+
+    // Update User
+    const updatedUser = await dbClient.user.update({
+      where: { id: userId },
+      data: userUpdateData
+    })
+
+    // Update Profile if fields are provided
+    const updatedProfile = await dbClient.profile.update({
+      where: { userId },
+      data: { firstName, lastName, bio, githubUrl }
+    })
+
+    return sendDataResponse(res, 200, {
+      user: updatedUser,
+      profile: updatedProfile
+    })
+  } catch (error) {
+    console.error('Error updating user:', error)
+    return sendMessageResponse(res, 500, 'Unable to update user')
   }
+}
 
-  return sendDataResponse(res, 201, { user: { cohort_id: cohortId } })
+// Delete user (only logged-in user can delete their own account)
+export const deleteById = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = parseInt(req.params['id'])
+
+    // Ensure the logged-in user can only delete their own account
+    if (!req.user || req.user.id !== userId) {
+      return sendDataResponse(res, 403, {
+        error: 'You are not allowed to delete this user'
+      })
+    }
+
+    // Remove the user from the request before deletion
+    req.user = undefined
+
+    // Clear authentication session/token
+    res.clearCookie('token') // If using cookies
+    res.setHeader('Authorization', '') // If using JWT
+
+    // Check if user exists before deletion
+    const existingUser = await dbClient.user.findUnique({
+      where: { id: userId }
+    })
+
+    if (!existingUser) {
+      return sendDataResponse(res, 404, { error: 'User not found' })
+    }
+
+    // Delete all related posts first
+    await dbClient.post.deleteMany({
+      where: { userId }
+    })
+
+    // Delete the profile
+    await dbClient.profile.deleteMany({
+      where: { userId }
+    })
+
+    // Now, delete the user
+    await dbClient.user.delete({
+      where: { id: userId }
+    })
+
+    // Send success response
+    return sendDataResponse(res, 200, {
+      message: `User ${userId} deleted successfully.`
+    })
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    return sendMessageResponse(res, 500, 'Unable to delete user')
+  }
 }

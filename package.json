@@ -11,7 +11,8 @@
     "db-reset": "prisma migrate reset",
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
-    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
+    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
+    "tsc": "tsc"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

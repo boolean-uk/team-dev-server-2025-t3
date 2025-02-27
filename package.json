@@ -41,18 +41,18 @@
     "husky": "^7.0.4",
     "nodemon": "^2.0.15",
     "prettier": "^2.6.2",
-    "prisma": "^3.12.0",
+    "prisma": "^3.15.2",
+    "tsx": "^4.19.3",
     "typescript-eslint": "^8.25.0"
   },
   "dependencies": {
-    "@prisma/client": "^3.12.0",
+    "@prisma/client": "^3.15.2",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
     "swagger-ui-express": "^5.0.0",
-    "tsx": "^4.19.3",
     "yaml": "^2.3.4"
   }
 }

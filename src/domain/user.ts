@@ -117,14 +117,15 @@ export default class User {
       Prisma.UserCreateInput,
       Prisma.UserUncheckedCreateInput
     > = {
-      email: this.email,
-      password: this.passwordHash,
-      role: this.role as Role
+      email: this.email ?? '', // Ensure email is never undefined
+      password: this.passwordHash ?? '', // Ensure passwordHash is never undefined
+      role: this.role ?? ('STUDENT' as Role) // Ensure role is never undefined
     }
 
     // Explicitly add cohort only if cohortId exists
+    // Explicitly add cohort only if cohortId exists
     if (this.cohortId !== null && this.cohortId !== undefined) {
-      ;(data as Prisma.UserCreateInput).cohort = {
+      data.cohort = {
         connect: { id: this.cohortId }
       }
     }

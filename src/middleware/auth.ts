@@ -55,9 +55,24 @@ export const validateAuthentication: RequestHandler = async (
   }
 
   const foundUser = await User.findById(decodedToken.userId)
-  foundUser!.passwordHash = null
 
-  req.body.user = foundUser
+  // ✅ **Check if the user exists before proceeding**
+  if (!foundUser) {
+    return sendDataResponse(res, 401, {
+      authentication: 'User no longer exists. Please log in again.'
+    })
+  }
+
+  if (foundUser && typeof foundUser.passwordHash === 'string') {
+    delete foundUser.passwordHash
+  }
+
+  // ✅ Assign the user to `req.user`
+  req.body.user = {
+    id: foundUser.id!, // Ensure it's not null
+    email: foundUser.email ?? '', // Default to empty string if null
+    role: foundUser.role ?? 'STUDENT' // Default to 'STUDENT' if null
+  }
 
   next()
 }
@@ -71,9 +86,12 @@ function validateToken(token: string) {
     throw new Error('No JWT_SECRET set')
   }
 
-  return jwt.verify(token, JWT_SECRET, (error) => {
-    return !error
-  })
+  try {
+    jwt.verify(token, JWT_SECRET)
+    return true
+  } catch {
+    return false
+  }
 }
 
 function validateTokenType(type: string) {

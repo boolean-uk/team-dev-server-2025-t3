@@ -1,8 +1,10 @@
+import type { Response } from 'express'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import dbClient from '../utils/dbClient'
+import type { AuthenticatedRequest } from '../middleware/auth' 
 
 // Create Profile
-export const create = async (req: Request, res: Response) => {
+export const create = async (req: AuthenticatedRequest, res: Response) => {
   try {
     console.log('Received request body:', req.body) // Log request data
 
@@ -49,7 +51,7 @@ export const create = async (req: Request, res: Response) => {
 }
 
 // Get All Profiles
-export const getAll = async (req: Request, res: Response) => {
+export const getAll = async (_req: AuthenticatedRequest, res: Response) => {
   try {
     const profiles = await dbClient.profile.findMany({
       include: { user: { select: { id: true, email: true, role: true } } }
@@ -62,9 +64,12 @@ export const getAll = async (req: Request, res: Response) => {
 }
 
 // Get Profile by User ID
-export const getById = async (req: Request, res: Response) => {
+export const getById = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    const userId = parseInt(req.params.userId)
+    const userId = parseInt(req.params['userId'])
     const profile = await dbClient.profile.findUnique({
       where: { userId },
       include: { user: { select: { id: true, email: true, role: true } } }
@@ -80,12 +85,12 @@ export const getById = async (req: Request, res: Response) => {
 }
 
 // Update Profile
-export const updateById = async (req: Request, res: Response) => {
+export const updateById = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = parseInt(req.params.userId)
+    const userId = parseInt(req.params['userId'])
 
     // Ensure the logged-in user can only update their own profile
-    if (req.user.id !== userId) {
+    if (req.body.user.id !== userId) {
       return sendDataResponse(res, 403, {
         error: 'You are not allowed to update this profile'
       })
@@ -123,11 +128,11 @@ export const updateById = async (req: Request, res: Response) => {
 }
 
 // Delete Profile
-export const deleteById = async (req: Request, res: Response) => {
+export const deleteById = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = parseInt(req.params.userId)
+    const userId = parseInt(req.params['userId'])
 
-    if (req.user.id !== userId) {
+    if (req.body.user.id !== userId) {
       return sendDataResponse(res, 403, {
         error: 'You are not allowed to delete this profile'
       })

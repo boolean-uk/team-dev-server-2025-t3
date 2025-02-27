@@ -2,7 +2,22 @@ import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import { JWT_SECRET } from '../utils/config.js'
 import jwt from 'jsonwebtoken'
 import User from '../domain/user.js'
-import type { RequestHandler } from 'express'
+import type { Request, RequestHandler } from 'express'
+
+export interface AuthenticatedRequest extends Request {
+  body: {
+    user: User
+    userId: number
+    firstName: string
+    lastName: string
+    bio?: string
+    githubUrl?: string
+    mobile?: string
+    specialism?: string
+    startDate?: string
+    endDate?: string
+  }
+}
 
 export const validateTeacherRole: RequestHandler = async (req, res, next) => {
   if (!req.body.user) {
@@ -19,7 +34,7 @@ export const validateTeacherRole: RequestHandler = async (req, res, next) => {
 }
 
 export const validateAuthentication: RequestHandler = async (
-  req,
+  req: AuthenticatedRequest,
   res,
   next
 ) => {
@@ -56,6 +71,9 @@ export const validateAuthentication: RequestHandler = async (
 
   const foundUser = await User.findById(decodedToken.userId)
   foundUser!.passwordHash = null
+  if (!foundUser) {
+    return sendDataResponse(res, 404, { error: 'User not found' })
+  }
 
   req.body.user = foundUser
 

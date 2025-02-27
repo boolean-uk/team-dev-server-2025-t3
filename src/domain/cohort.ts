@@ -2,26 +2,23 @@ import dbClient from '../utils/dbClient.ts'
 
 /**
  * Create a new Cohort in the database
- * @returns {Cohort}
  */
-export async function createCohort() {
+export async function createCohort(name: string) {
   const createdCohort = await dbClient.cohort.create({
-    data: {}
+    data: {
+      name
+    },
   })
 
-  return new Cohort(createdCohort.id)
+  return new Cohort(createdCohort.id, name)
 }
 
 export class Cohort {
-  constructor(id = null) {
-    this.id = id
-  }
+  public id: number | null
+  public name: string
 
-  toJSON() {
-    return {
-      cohort: {
-        id: this.id
-      }
-    }
+  constructor(id: number | null = null, name: string) {
+    this.id = id
+    this.name = name
   }
 }

@@ -1,6 +1,7 @@
+import type { RequestHandler, Request } from 'express'
 import { sendDataResponse } from '../utils/responses.js'
 
-export const create = async (req, res) => {
+export const create: RequestHandler = async (req, res) => {
   const { content } = req.body
 
   if (!content) {
@@ -10,18 +11,18 @@ export const create = async (req, res) => {
   return sendDataResponse(res, 201, { post: { id: 1, content } })
 }
 
-export const getAll = async (req, res) => {
+export const getAll: RequestHandler = async (req: Request, res) => {
   return sendDataResponse(res, 200, {
     posts: [
       {
         id: 1,
         content: 'Hello world!',
-        author: { ...req.user }
+        author: { ...req.body.user }
       },
       {
         id: 2,
         content: 'Hello from the void!',
-        author: { ...req.user }
+        author: { ...req.body.user }
       }
     ]
   })

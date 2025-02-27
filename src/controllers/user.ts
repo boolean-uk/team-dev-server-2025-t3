@@ -1,4 +1,7 @@
+
 import dbClient from '../utils/dbClient.js'
+import type { RequestHandler } from 'express'
+import User from '../domain/user.js'
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
 import bcrypt from 'bcrypt'
 

@@ -2,6 +2,14 @@
 
 ## Setting up
 
+### Quick guide
+
+1. Setup .env
+2. run `npm ci`
+3. run `npx prisma migrate reset` if the schema has changed
+4. run `npx prisma generate` to create required types
+5. run `npm run dev`
+
 ### Pre-requisite
 
 [Follow this guide to create your databases](./DB_SETUP.md)
@@ -18,7 +26,7 @@ Once you have complete the above guide, continue to the steps below.
 
 ## API Spec
 
-[todo]: <Deploy and update the link below>
+[todo]: # Deploy and update the link below
 
 [Deployed API Spec](https://UPDATEME)
 
@@ -39,7 +47,5 @@ Please review the [./prisma/seed.js](./prisma/seed.js) file to see the data that
 The users that are seeded can be used to test the API endpoints and to log into the client app.
 
 ## DATABASE ERD
-
-[todo]: <Update this with your ERD>
 
 TODO

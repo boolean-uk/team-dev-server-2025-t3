@@ -551,8 +551,8 @@ paths:
     post:
       tags:
         - cohort
-      summary: Create a new cohort and assign students
-      description: 'Creates a new cohort and assigns users with the STUDENT role to it.'
+      summary: Create a new cohort and assign users
+      description: Creates a new cohort and assigns any users (students or teachers) to it.
       operationId: createCohort
       security:
         - bearerAuth: []
@@ -569,9 +569,13 @@ paths:
                   items:
                     type: integer
                   example: [1, 2, 3]
+                  description: 'Array of user IDs to assign to the cohort'
+                name:
+                  type: string
+                  description: 'Name of the created cohort'
       responses:
         201:
-          description: success
+          description: Cohort created successfully
           content:
             application/json:
               schema:
@@ -617,6 +621,8 @@ paths:
                       properties:
                         id:
                           type: integer
+                        name:
+                          type: string
                         users:
                           type: array
                           items:

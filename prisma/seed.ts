@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Role } from '@prisma/client'
 import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
@@ -24,13 +24,24 @@ async function seed() {
     'teacher1',
     'TEACHER'
   )
+  const simpleTeacher = await createUser(
+    'string',
+    'string',
+    null,
+    'Rick',
+    'Sanchez',
+    'Hello there!',
+    'teacher1',
+    'TEACHER'
+  )
 
   await createPost(student.id, 'My first post!')
   await createPost(teacher.id, 'Hello, students')
+  await createPost(simpleTeacher.id, 'Hello, students')
   process.exit(0)
 }
 
-async function createPost(userId, content) {
+async function createPost(userId: number, content: string) {
   const post = await prisma.post.create({
     data: {
       userId,
@@ -48,7 +59,7 @@ async function createPost(userId, content) {
 
 async function createCohort() {
   const cohort = await prisma.cohort.create({
-    data: {}
+    data: { name: 'test' }
   })
 
   console.info('Cohort created', cohort)
@@ -57,14 +68,14 @@ async function createCohort() {
 }
 
 async function createUser(
-  email,
-  password,
-  cohortId,
-  firstName,
-  lastName,
-  bio,
-  githubUrl,
-  role = 'STUDENT'
+  email: string,
+  password: string,
+  cohortId: number | null,
+  firstName: string,
+  lastName: string,
+  bio: string,
+  githubUrl: string,
+  role: Role = 'STUDENT'
 ) {
   const user = await prisma.user.create({
     data: {

@@ -1,56 +1,83 @@
+import { type Role, type Prisma } from '@prisma/client'
+import type { DBUser } from '../types.js'
 import dbClient from '../utils/dbClient.js'
 import bcrypt from 'bcrypt'
 
 export default class User {
+  public id: number | null
+  public cohortId: number | null
+  public email: string
+  public firstName: string | null
+  public lastName: string | null
+  public bio: string | null
+  public githubUrl: string | null
+  public passwordHash: string | null
+  public role: Role | null
+
   /**
    * This is JSDoc - a way for us to tell other developers what types functions/methods
    * take as inputs, what types they return, and other useful information that JS doesn't have built in
    * @tutorial https://www.valentinog.com/blog/jsdoc
    *
-   * @param { { id: int, cohortId: int, email: string, profile: { firstName: string, lastName: string, bio: string, githubUrl: string } } } user
-   * @returns {User}
    */
-  static fromDb(user) {
+  static fromDb(user: DBUser) {
     return new User(
       user.id,
       user.cohortId,
-      user.profile?.firstName,
-      user.profile?.lastName,
+      user.profile?.firstName ?? null,
+      user.profile?.lastName ?? null,
       user.email,
-      user.profile?.bio,
-      user.profile?.githubUrl,
+      user.profile?.bio ?? null,
+      user.profile?.githubUrl ?? null,
       user.password,
       user.role
     )
   }
 
-  static async fromJson(json) {
+  static async fromJson(json: Record<string, unknown>) {
     const { firstName, lastName, email, biography, githubUrl, password } = json
-
+    if (typeof password !== 'string') {
+      throw new Error('password must be string')
+    }
+    if (firstName !== undefined && typeof firstName !== 'string') {
+      throw new Error('firstName must be string')
+    }
+    if (lastName !== undefined && typeof lastName !== 'string') {
+      throw new Error('lastName must be string')
+    }
+    if (typeof email !== 'string') {
+      throw new Error('email must be string')
+    }
+    if (typeof biography !== 'string' && biography !== undefined) {
+      throw new Error('biography must be string or null')
+    }
+    if (typeof githubUrl !== 'string' && githubUrl !== undefined) {
+      throw new Error('githubUrl must be string or null')
+    }
     const passwordHash = await bcrypt.hash(password, 8)
 
     return new User(
       null,
       null,
-      firstName,
-      lastName,
+      firstName ?? null,
+      lastName ?? null,
       email,
-      biography,
-      githubUrl,
+      biography ?? null,
+      githubUrl ?? null,
       passwordHash
     )
   }
 
   constructor(
-    id,
-    cohortId,
-    firstName,
-    lastName,
-    email,
-    bio,
-    githubUrl,
-    passwordHash = null,
-    role = 'STUDENT'
+    id: number | null,
+    cohortId: number | null,
+    firstName: string | null,
+    lastName: string | null,
+    email: string,
+    bio: string | null,
+    githubUrl: string | null,
+    passwordHash: string | null = null,
+    role: Role = 'STUDENT'
   ) {
     this.id = id
     this.cohortId = cohortId
@@ -83,15 +110,21 @@ export default class User {
    *  A user instance containing an ID, representing the user data created in the database
    */
   async save() {
-    const data = {
+    if (this.passwordHash === null) {
+      throw new Error('tried saving user without password')
+    }
+    const data: Prisma.XOR<
+      Prisma.UserCreateInput,
+      Prisma.UserUncheckedCreateInput
+    > = {
       email: this.email,
       password: this.passwordHash,
-      role: this.role
+      role: this.role as Role
     }
 
     if (this.cohortId) {
       data.cohort = {
-        connectOrCreate: {
+        connect: {
           id: this.cohortId
         }
       }
@@ -117,26 +150,27 @@ export default class User {
     return User.fromDb(createdUser)
   }
 
-  static async findByEmail(email) {
-    return User._findByUnique('email', email)
+  static async findByEmail(email: string) {
+    return User._findByEmail(email)
   }
 
-  static async findById(id) {
-    return User._findByUnique('id', id)
+  static async findById(id: number) {
+    return User._findById(id)
   }
 
-  static async findManyByFirstName(firstName) {
+  static async findManyByFirstName(firstName: string) {
     return User._findMany('firstName', firstName)
   }
 
   static async findAll() {
-    return User._findMany()
+    const users = await dbClient.user.findMany({ include: { profile: true } })
+    return users.map((user) => User.fromDb(user))
   }
 
-  static async _findByUnique(key, value) {
+  static async _findByEmail(email: string) {
     const foundUser = await dbClient.user.findUnique({
       where: {
-        [key]: value
+        email
       },
       include: {
         profile: true
@@ -150,11 +184,31 @@ export default class User {
     return null
   }
 
-  static async _findMany(key, value) {
+  static async _findById(id: number) {
+    const foundUser = await dbClient.user.findUnique({
+      where: {
+        id
+      },
+      include: {
+        profile: true
+      }
+    })
+
+    if (foundUser) {
+      return User.fromDb(foundUser)
+    }
+
+    return null
+  }
+
+  static async _findMany(key: string, value: string | number): Promise<User[]> {
     const query = {
       include: {
         profile: true
       }
+    } as {
+      include: { profile: boolean }
+      where?: { profile: { [x: string]: string | number } }
     }
 
     if (key !== undefined && value !== undefined) {

@@ -164,6 +164,210 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /profiles:
+    post:
+      tags:
+        - profile
+      summary: Create a new profile
+      description: Creates a profile for an existing user.
+      operationId: createProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                bio:
+                  type: string
+                  nullable: true
+                githubUrl:
+                  type: string
+                  nullable: true
+                mobile:
+                  type: string
+                  nullable: true
+                specialism:
+                  type: string
+                  nullable: true
+                startDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                endDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        201:
+          description: Profile created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+        404:
+          description: User not found
+        500:
+          description: Internal server error
+
+    get:
+      tags:
+        - profile
+      summary: Get all profiles
+      description: Retrieves all profiles with user details.
+      operationId: getAllProfiles
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      type: object
+        500:
+          description: Internal server error
+
+  /profiles/{userId}:
+    get:
+      tags:
+        - profile
+      summary: Get a profile by user ID
+      description: Retrieves a specific profile based on the user's ID.
+      operationId: getProfileById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+        404:
+          description: Profile not found
+        500:
+          description: Internal server error
+
+    put:
+      tags:
+        - profile
+      summary: Update a profile
+      description: Updates a specific profile based on the user's ID.
+      operationId: updateProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                bio:
+                  type: string
+                  nullable: true
+                githubUrl:
+                  type: string
+                  nullable: true
+                mobile:
+                  type: string
+                  nullable: true
+                specialism:
+                  type: string
+                  nullable: true
+                startDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                endDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        200:
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+        403:
+          description: Unauthorized to update profile
+        404:
+          description: Profile not found
+        500:
+          description: Internal server error
+
+    delete:
+      tags:
+        - profile
+      summary: Delete a profile
+      description: Deletes a specific profile based on the user's ID.
+      operationId: deleteProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Profile deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile deleted successfully"
+        403:
+          description: Unauthorized to delete profile
+        404:
+          description: Profile not found
+        500:
+          description: Internal server error
+
   /posts:
     post:
       tags:

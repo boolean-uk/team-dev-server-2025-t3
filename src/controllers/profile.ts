@@ -1,7 +1,5 @@
 import { sendDataResponse, sendMessageResponse } from '../utils/responses.js'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import dbClient from '../utils/dbClient'
 
 // Create Profile
 export const create = async (req: Request, res: Response) => {
@@ -24,14 +22,14 @@ export const create = async (req: Request, res: Response) => {
     } = req.body
 
     // Check if user exists
-    const user = await prisma.user.findUnique({ where: { id: userId } })
+    const user = await dbClient.user.findUnique({ where: { id: userId } })
     if (!user) {
       console.error('User not found for ID:', userId) // Log issue
       return sendDataResponse(res, 404, { error: 'User not found' })
     }
 
     // Create profile
-    const profile = await prisma.profile.create({
+    const profile = await dbClient.profile.create({
       data: {
         userId,
         firstName,
@@ -59,7 +57,7 @@ export const create = async (req: Request, res: Response) => {
 // Get All Profiles
 export const getAll = async (req: Request, res: Response) => {
   try {
-    const profiles = await prisma.profile.findMany({
+    const profiles = await dbClient.profile.findMany({
       include: { user: { select: { id: true, email: true, role: true } } }
     })
     return sendDataResponse(res, 200, { profiles })
@@ -73,7 +71,7 @@ export const getAll = async (req: Request, res: Response) => {
 export const getById = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId)
-    const profile = await prisma.profile.findUnique({
+    const profile = await dbClient.profile.findUnique({
       where: { userId },
       include: { user: { select: { id: true, email: true, role: true } } }
     })
@@ -91,7 +89,15 @@ export const getById = async (req: Request, res: Response) => {
 export const updateById = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId)
-    const profile = await prisma.profile.update({
+
+    // Ensure the logged-in user can only update their own profile
+    if (req.user.id !== userId) {
+      return sendDataResponse(res, 403, {
+        error: 'You are not allowed to update this profile'
+      })
+    }
+
+    const profile = await dbClient.profile.update({
       where: { userId },
       data: req.body
     })
@@ -106,7 +112,14 @@ export const updateById = async (req: Request, res: Response) => {
 export const deleteById = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId)
-    await prisma.profile.delete({ where: { userId } })
+
+    if (req.user.id !== userId) {
+      return sendDataResponse(res, 403, {
+        error: 'You are not allowed to delete this profile'
+      })
+    }
+
+    await dbClient.profile.delete({ where: { userId } })
     return sendDataResponse(res, 200, {
       message: 'Profile deleted successfully'
     })

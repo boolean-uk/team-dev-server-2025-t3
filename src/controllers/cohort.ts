@@ -70,6 +70,8 @@ export const getCohort: RequestHandler = async (req, res) => {
   }
 
   try {
+    console.log(user.cohortId)
+    console.log(user)
     if (user.role == 'TEACHER' || user.cohortId === cohortId) {
       const cohort = await dbClient.cohort.findUnique({
         where: { id: cohortId },

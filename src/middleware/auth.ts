@@ -71,7 +71,8 @@ export const validateAuthentication: RequestHandler = async (
   req.body.user = {
     id: foundUser.id!, // Ensure it's not null
     email: foundUser.email ?? '', // Default to empty string if null
-    role: foundUser.role ?? 'STUDENT' // Default to 'STUDENT' if null
+    role: foundUser.role ?? 'STUDENT', // Default to 'STUDENT' if null
+    cohortId: foundUser.cohortId
   }
 
   next()
